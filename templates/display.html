@@ -1,0 +1,138 @@
+{% extends 'main.html' %}
+{% block nav_data %}
+<li class="nav-item active">
+    <a class="nav-link" href="/plot">Plot <span class="sr-only">(current)</span></a>
+</li>
+{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <form class="form-inline">
+        <div class="form-group mb-2">
+            <label for="dataFile">fileName</label>
+            <select name="dataFile" id="dataFile" class="form-control form-control-sm">
+                {% for singleData in data %}
+                    <option value={{singleData}}>{{singleData}}</option>
+                {% endfor%}
+            </select>
+        </div>
+        <div class="form-group mb-2">
+            <label for="columnName">column Name</label>
+            <input type="text" name = "columnName" id = "column" class="form-control">
+        </div>
+        <div class="form-group mb-2">
+            <label for="functionName">function name</label>
+            <select name="functionName" id="functionName" class="form-control form-control-sm" >
+                {% for function in functionNames %}
+                    <option value={{function}}>{{function}}</option>
+                {% endfor%}
+            </select>
+            <input id = "compute" type="button" value="Compute"/> 
+        </div>
+        <div id="computeOutput">
+            None
+        </div>
+    </form>
+    <form  class="form-inline">
+        <div class="form-group mb-2">
+            <label for="pdataFile">fileName</label>
+            <select name="pdataFile" id="pdataFile" class="form-control form-control-sm">
+                {% for singleData in data %}
+                    <option value={{singleData}}>{{singleData}}</option>
+                {% endfor%}
+            </select>
+        </div>
+        <div class="form-group mb-2">
+            <label for="columnName1">column1 Name</label>
+            <input type="text" name = "columnName1" id = "column1" class="form-control">
+        </div>
+        <div class="form-group mb-2">
+            <label for="columnName1">column2 Name</label>
+            <input type="text" name = "columnName1" id = "column2" class="form-control">
+        </div>
+        <div class="form-group mb-2">
+            <input id = "plot" type="button" value="Plot"/>
+        </div>
+    </form>
+</div>
+<div id="myPlot" style="visibility:hidden;width:100%;max-width:700px"></div>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    
+    document.getElementById("compute").addEventListener('click',function(){
+        var fileName = document.getElementById("dataFile").value;
+        var functionName = document.getElementById("functionName").value;
+        var column = document.getElementById("column").value;
+        let data = {
+            'functionName': functionName, 
+            'column' : column
+        };
+        var csrf_token = "{{ csrf_token() }}";
+        $.ajax({
+            type: "POST",
+            url: "http://127.0.0.1:5000/dataset/"+fileName+"/compute",
+            data: JSON.stringify(data),
+            headers: {
+                "X-CSRFToken": csrf_token,
+            },
+            contentType: "application/json",
+            success: function (result) {
+                document.getElementById("computeOutput").innerText = result.data;
+            },
+            error: function (result, status) {
+                window.alert("error please check input!");
+            }
+          }); 
+    });
+    document.getElementById("plot").addEventListener('click',function(){
+        var fileName = document.getElementById("pdataFile").value;
+        var column1 = document.getElementById("column1").value;
+        var column2 = document.getElementById("column2").value;
+        let data = {
+            'column1': column1, 
+            'column2' : column2
+        };
+        console.log(data);
+        var csrf_token = "{{ csrf_token() }}";
+        $.ajax({
+            type: "POST",
+            url: "http://127.0.0.1:5000/dataset/"+fileName+"/plot",
+            data: JSON.stringify(data),
+            headers: {
+                "X-CSRFToken": csrf_token,
+            },
+            contentType: "application/json",
+            success: function (result) {
+                window.alert("success");
+                //temp = JSON.parse(result.success);
+                var data = [{
+                    x:result.column1,
+                    y:result.column2,
+                    mode:"markers"
+                    }];
+                
+                    // Define Layout
+                document.getElementById("myPlot").style.visibility = "visible" ;
+                Plotly.newPlot("myPlot", data);
+                //document.getElementById("computeOutput").innerText = result.data;
+            },
+            error: function (result, status) {
+                window.alert("error please check input!");
+            }
+          }); 
+    });
+    var xArray = [50,60,70,80,90,100,110,120,130,140,150];
+    var yArray = [7,8,8,9,9,9,10,11,14,14,15];
+
+    // Define Data
+    var data = [{
+    x:xArray,
+    y:yArray,
+    mode:"markers"
+    }];
+
+    // Define Layout
+    Plotly.newPlot("myPlot", data);
+</script>
+{% autoescape off %}
+{%  endautoescape %}
+{% endblock %}

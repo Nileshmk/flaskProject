@@ -1,0 +1,40 @@
+{% extends 'main.html' %}
+
+{% block nav_data %}
+<li class="nav-item active">
+    <a class="nav-link" href="/data">Data <span class="sr-only">(current)</span></a>
+</li>
+{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <table class = "table">
+        <thead>
+            <tr>CSV Files</tr>
+        </thead>
+        <tbody>
+            {% for singleData in data %}
+                <tr>
+                    <td>{{singleData}}<td>
+                <tr>
+            {% endfor%}
+        </tbody>
+    </table>
+    <form id = "my-form" method = "POST" enctype="multipart/form-data" action="http://127.0.0.1:5000/dataset">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="form-group">
+            <label for="file">Select CSV</label>
+            {{form.file}}
+            <!-- <input id="file" type="file"  class="form-control-file" accept=".csv" /><br> -->
+        </div>
+        <div class="form-group">
+            <label for="name">Name</label>
+            {{form.name}}
+            <!-- <input id = "name" type="Text"><br> -->
+            <button id = "submit-button">Save</button>
+        </div>
+        <!-- <input type = "submit"> -->
+        
+    </form>
+</div>
+
+{% endblock %}
